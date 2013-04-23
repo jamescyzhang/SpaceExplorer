@@ -17,7 +17,7 @@ class Bullet {
   public boolean visible;
   public void render() {
     if (!visible) return;
-    ellipse(x, y, 5, 5);
+    ellipse(x, y, 3, 3);
   }
 }
 
