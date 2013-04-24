@@ -166,7 +166,7 @@ void draw() {
       }
     }
   }
-
+  
   println(vBullet.size() +  "      " + vAst.size());
 }
 
@@ -209,4 +209,5 @@ void keyReleased() {
     fire = false;
   }
 }
+
 
