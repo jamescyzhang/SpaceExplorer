@@ -21,11 +21,34 @@ class Bullet {
   }
 }
 
+class Asteroid {
+  public float x, y, dir;
+  public float[] vx = new float[6];
+  public float[] vy = new float[6];
+  public boolean visible;
+  public void make() {
+    for (int i = 0; i < 6; i++) {
+      float tmp = random(30);
+      vx[i] = tmp * sin(PI/3 * i);
+      vy[i] = tmp * cos(PI/3 * i);
+    }
+  }
+  public void render() {
+    if (!visible) return;
+    beginShape();
+    for (int i = 0; i < 6; i++) {
+      vertex(x + vx[i], y + vy[i]);
+    }
+    endShape(CLOSE);
+  }
+}
+
+int gunHeat;
 int turn;
-float gunHeat;
 boolean forward, reverse, fire;
 Spacecraft sc = new Spacecraft();
 Vector<Bullet> vBullet = new Vector<Bullet>();
+Vector<Asteroid> vAst = new Vector<Asteroid>();
 
 void setup() {
   size(1000, 700);
@@ -57,12 +80,18 @@ void draw() {
     sc.y += 2 * cos(sc.dir);
   }
   if (fire) {
-    Bullet newb = new Bullet();
-    newb.x = sc.x + 20 * sin(sc.dir);
-    newb.y = sc.y - 20 * cos(sc.dir);
-    newb.dir = sc.dir;
-    newb.visible = true;
-    vBullet.add(newb);
+    if (gunHeat == 0) {
+      Bullet newb = new Bullet();
+      newb.x = sc.x + 20 * sin(sc.dir);
+      newb.y = sc.y - 20 * cos(sc.dir);
+      newb.dir = sc.dir;
+      newb.visible = true;
+      vBullet.add(newb);
+      gunHeat += 10;
+    }
+  }
+  if (gunHeat > 0) {
+    gunHeat--;
   }
   if (sc.x > width) {
     sc.x -= width;
@@ -85,6 +114,49 @@ void draw() {
       vBullet.remove(i);
     }
     b.render();
+  }
+  int rand = int(random(20));
+  if (rand == 5) {
+    Asteroid ast = new Asteroid();
+    int tmp = int(random(4));
+    if (tmp == 1) {
+      ast.x = 10;
+      ast.y = random(height);
+    }
+    else if (tmp == 2) {
+      ast.x = random(width);
+      ast.y = 10;
+    }
+    else if (tmp == 3) {
+      ast.x = width - 10;
+      ast.y = random(height);
+    }
+    else if (tmp == 4) {
+      ast.x = random(width);
+      ast.y = height - 10;
+    }
+    ast.dir = random(TWO_PI);
+    ast.make();
+    ast.visible = true;
+    vAst.add(ast);
+  }
+  for (int i = 0; i < vAst.size(); i++) {
+    Asteroid b = vAst.get(i);
+    b.x += 2 * sin(b.dir);
+    b.y -= 2 * cos(b.dir);
+    if (b.x > width || b.y > height || b.x < 0 || b.y < 0) {
+      vAst.remove(i);
+    }
+    b.render();
+    for (int j = 0; j < vBullet.size(); j++) {
+      Bullet c = vBullet.get(j);
+      if (sqrt(sq(b.x - c.x) + sq(b.y + c.y)) < 30) {
+        c.visible = false;
+        b.visible = false;
+        vBullet.remove(j);
+        vAst.remove(i);
+      }
+    }
   }
 }
 
