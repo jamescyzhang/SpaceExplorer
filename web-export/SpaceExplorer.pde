@@ -3,12 +3,14 @@ import java.util.Vector;
 abstract class Component {
   public float x, y, dir;
   public boolean visible;
+  public float collisionDist;
   public abstract void render();
 }
 
 class Spacecraft extends Component {
-  public float x, y, dir;
-  public boolean visible;
+  public Spacecraft() {
+    collisionDist = 20;
+  }
   public void render() {
     strokeWeight(2);
     if (!visible) return;
@@ -21,8 +23,9 @@ class Spacecraft extends Component {
 }
 
 class Bullet extends Component {
-  public float x, y, dir;
-  public boolean visible;
+  public Bullet() {
+    collisionDist = 5;
+  }
   public void render() {
     if (!visible) return;
     ellipse(x, y, 3, 3);
@@ -30,10 +33,11 @@ class Bullet extends Component {
 }
 
 class Asteroid extends Component {
-  public float x, y, dir;
+  public Ateroid() {
+    collisionDist = 25;
+  }
   public float[] vx = new float[6];
   public float[] vy = new float[6];
-  public boolean visible;
   public void make() {
     for (int i = 0; i < 6; i++) {
       float tmp = random(30);
@@ -57,6 +61,14 @@ boolean forward, reverse, fire;
 Spacecraft sc = new Spacecraft();
 Vector<Bullet> vBullet = new Vector<Bullet>();
 Vector<Asteroid> vAst = new Vector<Asteroid>();
+
+boolean collision(Component a, Component b) {
+  if (dist(a.x, a.y, b.x, b.y) < a.collisionDist + b.collisionDist) {
+    return true;
+  } 
+  else return false;
+}
+
 
 void setup() {
   size(1000, 700);
@@ -114,6 +126,16 @@ void draw() {
     sc.y += height;
   }
   sc.render();
+  for (int i = 0; i < vAst.size(); i++) {
+    for (int j = 0; j < vBullet.size(); j++) {
+      if (collision(vAst.get(i), vBullet.get(j)) < 30) {
+        vBullet.get(j).visible = false;
+        vAst.get(i).visible = false;
+        vBullet.remove(j);
+        vAst.remove(i);
+      }
+    }
+  }
   for (int i = 0; i < vBullet.size(); i++) {
     Bullet b = vBullet.get(i);
     b.x += 8 * sin(b.dir);
@@ -156,17 +178,8 @@ void draw() {
       vAst.remove(i);
     }
     b.render();
-    for (int j = 0; j < vBullet.size(); j++) {
-      Bullet c = vBullet.get(j);
-      if (sqrt(sq(b.x - c.x) + sq(b.y + c.y)) < 30) {
-        vBullet.get(j).visible = false;
-        vAst.get(i).visible = false;
-        vBullet.remove(j);
-        vAst.remove(i);
-      }
-    }
   }
-  
+
   println(vBullet.size() +  "      " + vAst.size());
 }
 
